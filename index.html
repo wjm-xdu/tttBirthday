@@ -76,7 +76,7 @@ body {
   100% { transform:translateY(-5vh) rotate(360deg) scale(0); opacity:0; }
 }
 
-/* ============ 开场动画 ============ */
+/* ============ 开场动画 — Canvas手写 ============ */
 .intro-overlay {
   position:fixed; inset:0; background:var(--bg);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -87,8 +87,8 @@ body {
   width:100px; height:100px; border-radius:50%;
   border:2px solid rgba(180,52,52,0.15);
   display:flex; align-items:center; justify-content:center;
-  position:relative; margin-bottom:16px;
-  animation: ringIn 1s ease 0.2s both;
+  position:absolute; top:12%; left:50%; transform:translateX(-50%);
+  animation: ringIn 1s ease 0.2s both; z-index:2;
 }
 .intro-ring::before {
   content:''; position:absolute; inset:-16px; border-radius:50%;
@@ -97,33 +97,17 @@ body {
 }
 .intro-icon { font-size:48px; }
 @keyframes ringIn {
-  0% { transform:scale(0.3); opacity:0; }
-  100% { transform:scale(1); opacity:0.75; }
+  0% { transform:translateX(-50%) scale(0.3); opacity:0; }
+  100% { transform:translateX(-50%) scale(1); opacity:0.75; }
 }
-/* 花体英文标题 */
-.intro-title {
-  font-family:'Great Vibes','Playfair Display',serif;
-  font-size:clamp(2.5rem,8vw,4.5rem);
-  color:var(--red-deep);
-  font-weight:400; letter-spacing:2px; text-align:center;
-  animation: fadeUpIn 0.8s ease 0.8s both;
-}
-.intro-love {
-  font-family:'Great Vibes','Playfair Display',serif;
-  font-size:clamp(1.4rem,5vw,2.2rem);
-  color:var(--red);
-  font-weight:400; letter-spacing:3px; margin-top:2px;
-  animation: fadeUpIn 0.7s ease 1.4s both;
-}
+/* Canvas */
+#introCanvas { position:relative; z-index:1; }
+/* 副标题 */
 /* 副标题 */
 .intro-sub {
   font-family:var(--font-heading); font-size:0.95rem; color:var(--text-light);
-  margin-top:12px; letter-spacing:6px;
-  animation: fadeUpIn 0.6s ease 2.2s both;
-}
-@keyframes fadeUpIn {
-  0% { opacity:0; transform:translateY(16px); }
-  100% { opacity:1; transform:translateY(0); }
+  letter-spacing:6px; opacity:0; transition:opacity 0.5s ease;
+  position:relative; z-index:2;
 }
 
 /* ============ 全屏背景层 ============ */
@@ -1439,11 +1423,10 @@ main { position:relative; z-index:10; max-width:860px; margin:0 auto; padding:0 
   <div class="intro-ring" id="introRing">
     <div class="intro-icon">🍎</div>
   </div>
-  <!-- 花体英文标题 -->
-  <h1 class="intro-title">Happy Birthday ttt</h1>
-  <p class="intro-love">my love</p>
+  <!-- Canvas 手写动画 -->
+  <canvas id="introCanvas"></canvas>
   <!-- 副标题 -->
-  <p class="intro-sub">✦ MY LOVE ✦</p>
+  <p class="intro-sub" id="introSub">✦ MY LOVE ✦</p>
 </div>
 
 <!-- 海岛选择页 -->
@@ -1834,17 +1817,198 @@ function initSparkles(){
 
 // ============ 开场 ============
 function initIntro(){
-  const o=document.getElementById('introOverlay');
+  const overlay=document.getElementById('introOverlay');
   const picker=document.getElementById('islandPicker');
+  const canvas=document.getElementById('introCanvas');
+  const ctx=canvas.getContext('2d');
+  const sub=document.getElementById('introSub');
+  let animId, done=false, allChars=[], totalChars=0;
+  let writeDuration=2800, fillTime=3200, flashTime=3600, fadeTime=4200;
+  let startTime=0;
+  const textColor='#8B1A1A', strokeColor='#B53434';
 
-  // 3.5s 后淡出，3.9s 显示主页
-  setTimeout(()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; },3500);
-  setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },4000);
+  function buildChars(){
+    const cw=canvas.width/devicePixelRatio, ch=canvas.height/devicePixelRatio;
+    const baseSize=Math.min(cw/5.5,ch/1.8);
+    const lines=[
+      {text:'Happy Birthday', y:0.30, size:0.22},
+      {text:'ttt',            y:0.52, size:0.26},
+      {text:'my love',        y:0.72, size:0.16}
+    ];
+    allChars=[];
+    lines.forEach(line=>{
+      const fs=baseSize*line.size;
+      ctx.font=`${fs}px 'Great Vibes','Playfair Display',serif`;
+      let x=(cw-ctx.measureText(line.text).width)/2;
+      const y=ch*line.y;
+      for(let i=0;i<line.text.length;i++){
+        const char=line.text[i];
+        const w=ctx.measureText(char).width;
+        allChars.push({char,x,y,size:fs,w});
+        x+=w;
+      }
+    });
+    totalChars=allChars.length;
+  }
+
+  // Canvas 尺寸
+  function resize(){
+    canvas.width=Math.min(window.innerWidth*0.92,700)*devicePixelRatio;
+    canvas.height=Math.min(window.innerHeight*0.55,320)*devicePixelRatio;
+    canvas.style.width=(canvas.width/devicePixelRatio)+'px';
+    canvas.style.height=(canvas.height/devicePixelRatio)+'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(devicePixelRatio,devicePixelRatio);
+    buildChars();
+  }
+
+  // 羽毛笔绘制
+  function drawPen(x,y,size,progress){
+    ctx.save();
+    ctx.translate(x+4,y-size*0.35);
+    ctx.rotate(-0.4+Math.sin(progress*8)*0.08);
+    // 笔杆
+    ctx.strokeStyle='#8B6914';
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0,size*0.7);
+    ctx.stroke();
+    // 笔尖
+    ctx.fillStyle='#B53434';
+    ctx.beginPath();
+    ctx.moveTo(-3,size*0.68);
+    ctx.lineTo(1,size*0.68);
+    ctx.lineTo(-1,size*0.82);
+    ctx.closePath();
+    ctx.fill();
+    // 羽毛
+    ctx.fillStyle='#E8D5C0';
+    ctx.beginPath();
+    ctx.ellipse(0,-size*0.05,size*0.12,size*0.35,-0.2,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='#F0E0D0';
+    ctx.beginPath();
+    ctx.ellipse(-2,-size*0.1,size*0.07,size*0.25,-0.1,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function draw(timestamp){
+    if(done) return;
+    if(!totalChars){ animId=requestAnimationFrame(draw); return; }
+    if(!startTime) startTime=timestamp;
+    const elapsed=timestamp-startTime;
+    const cw=canvas.width/devicePixelRatio, ch=canvas.height/devicePixelRatio;
+
+    // 清屏
+    ctx.clearRect(0,0,cw,ch);
+
+    // 确定当前写到第几个字符
+    const charProgress=Math.min(elapsed/writeDuration,1);
+    const currentCharIdx=Math.floor(charProgress*totalChars);
+    const subProgress=(charProgress*totalChars)-currentCharIdx;
+
+    // 绘制每个字符的描边
+    for(let i=0;i<allChars.length;i++){
+      const c=allChars[i];
+      ctx.font=`${c.size}px 'Great Vibes','Playfair Display',serif`;
+      ctx.textBaseline='alphabetic';
+
+      if(i<currentCharIdx){
+        // 已完成的字符：显示描边
+        ctx.fillStyle='transparent';
+        ctx.strokeStyle=strokeColor;
+        ctx.lineWidth=1.5;
+        ctx.lineJoin='round';
+        ctx.strokeText(c.char,c.x,c.y);
+        // 也画填充（写完后用）
+        if(elapsed>fillTime){
+          ctx.fillStyle=textColor;
+          ctx.fillText(c.char,c.x,c.y);
+        }
+      } else if(i===currentCharIdx){
+        // 当前字符：部分描边
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(c.x,c.y-c.size,c.w*subProgress,c.size*1.3);
+        ctx.clip();
+        ctx.fillStyle='transparent';
+        ctx.strokeStyle=strokeColor;
+        ctx.lineWidth=1.5;
+        ctx.lineJoin='round';
+        ctx.strokeText(c.char,c.x,c.y);
+        if(elapsed>fillTime){
+          ctx.fillStyle=textColor;
+          ctx.fillText(c.char,c.x,c.y);
+        }
+        ctx.restore();
+
+        // 画羽毛笔
+        const penX=c.x+c.w*subProgress;
+        const penY=c.y;
+        drawPen(penX,penY,c.size,elapsed/200);
+      }
+      // 未写的字符：不画
+    }
+
+    // 全部字符写完后统一填充
+    if(elapsed>fillTime && elapsed<=fillTime+400){
+      // 填充过渡期
+      for(let i=0;i<allChars.length;i++){
+        const c=allChars[i];
+        ctx.font=`${c.size}px 'Great Vibes','Playfair Display',serif`;
+        ctx.fillStyle=textColor;
+        ctx.fillText(c.char,c.x,c.y);
+      }
+    }
+
+    // 闪烁
+    if(elapsed>flashTime && elapsed<flashTime+400){
+      const flashAlpha=Math.sin((elapsed-flashTime)/50)*0.5+0.5;
+      ctx.fillStyle=`rgba(255,255,255,${flashAlpha*0.3})`;
+      ctx.fillRect(0,0,cw,ch);
+    }
+
+    // 显示副标题
+    if(elapsed>fillTime && sub.style.opacity==='0'){
+      sub.style.opacity='1';
+    }
+
+    // 交叉淡入淡出
+    if(elapsed>fadeTime-400 && picker.classList.contains('hidden')){
+      picker.classList.remove('hidden');
+    }
+    if(elapsed>fadeTime){
+      const fadeProgress=(elapsed-fadeTime)/400;
+      overlay.style.opacity=Math.max(0,1-fadeProgress);
+      if(fadeProgress>=1){
+        done=true; overlay.remove(); return;
+      }
+    }
+
+    animId=requestAnimationFrame(draw);
+  }
+
+  // 初始化 + 等待字体就绪
+  resize();
+  window.addEventListener('resize',()=>{ resize(); buildChars(); });
+  function startAnim(){
+    buildChars();
+    animId=requestAnimationFrame(draw);
+  }
+  if(document.fonts&&document.fonts.ready){
+    document.fonts.ready.then(startAnim);
+  } else {
+    setTimeout(startAnim,500); // 降级：等 0.5s 让字体加载
+  }
 
   // 点击跳过
-  o.addEventListener('click',()=>{
-    o.style.opacity='0'; o.style.transition='opacity 0.4s';
-    setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },400);
+  overlay.addEventListener('click',()=>{
+    done=true; cancelAnimationFrame(animId);
+    picker.classList.remove('hidden');
+    overlay.style.opacity='0'; overlay.style.transition='opacity 0.3s';
+    setTimeout(()=>overlay.remove(),350);
   });
 }
 
