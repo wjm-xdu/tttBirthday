@@ -76,100 +76,54 @@ body {
   100% { transform:translateY(-5vh) rotate(360deg) scale(0); opacity:0; }
 }
 
-/* ============ 开场动画 — 钢笔书写 ============ */
+/* ============ 开场动画 ============ */
 .intro-overlay {
   position:fixed; inset:0; background:var(--bg);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   z-index:9999; pointer-events:none;
 }
-
-/* ── 苹果光环 ── */
+/* 苹果光环 */
 .intro-ring {
   width:100px; height:100px; border-radius:50%;
   border:2px solid rgba(180,52,52,0.15);
   display:flex; align-items:center; justify-content:center;
-  position:relative; margin-bottom:10px;
-  animation: ringIn 1.2s ease 0.2s forwards; opacity:0;
+  position:relative; margin-bottom:16px;
+  animation: ringIn 1s ease 0.2s both;
 }
 .intro-ring::before {
   content:''; position:absolute; inset:-16px; border-radius:50%;
   border:1px solid rgba(200,150,62,0.08);
-  animation: ringIn 1.2s ease 0.4s forwards; opacity:0;
+  animation: ringIn 1s ease 0.4s both;
 }
 .intro-icon { font-size:48px; }
 @keyframes ringIn {
   0% { transform:scale(0.3); opacity:0; }
-  60% { transform:scale(1.06); opacity:1; }
   100% { transform:scale(1); opacity:0.75; }
 }
-
-/* ── 副标题 ── */
+/* 花体英文标题 */
+.intro-title {
+  font-family:'Great Vibes','Playfair Display',serif;
+  font-size:clamp(2.5rem,8vw,4.5rem);
+  color:var(--red-deep);
+  font-weight:400; letter-spacing:2px; text-align:center;
+  animation: fadeUpIn 0.8s ease 0.8s both;
+}
+.intro-love {
+  font-family:'Great Vibes','Playfair Display',serif;
+  font-size:clamp(1.4rem,5vw,2.2rem);
+  color:var(--red);
+  font-weight:400; letter-spacing:3px; margin-top:2px;
+  animation: fadeUpIn 0.7s ease 1.4s both;
+}
+/* 副标题 */
 .intro-sub {
-  font-family:var(--font-heading); font-size:1rem; color:var(--text-light);
-  margin-top:8px; letter-spacing:6px;
-  animation: subIn 0.6s ease 4s forwards; opacity:0;
+  font-family:var(--font-heading); font-size:0.95rem; color:var(--text-light);
+  margin-top:12px; letter-spacing:6px;
+  animation: fadeUpIn 0.6s ease 2.2s both;
 }
-@keyframes subIn {
-  0% { opacity:0; transform:translateY(12px); }
+@keyframes fadeUpIn {
+  0% { opacity:0; transform:translateY(16px); }
   100% { opacity:1; transform:translateY(0); }
-}
-
-.intro-svg {
-  width:min(90vw,700px); height:auto;
-  animation: introSvgFadeOut 0.5s ease 5.5s forwards, textFlash 0.4s ease 4.8s;
-}
-@keyframes introSvgFadeOut {
-  0% { opacity:1; }
-  100% { opacity:0; }
-}
-@keyframes textFlash {
-  0%   { filter:none; }
-  50%  { filter:drop-shadow(0 0 20px rgba(180,52,52,0.6)) drop-shadow(0 0 40px rgba(200,80,80,0.3)); }
-  100% { filter:none; }
-}
-
-/* 每个字母初始：描边隐藏，JS 驱动逐个显示 */
-.iw-char, .iw-char2, .iw-char3 {
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  fill: transparent;
-  stroke: #B53434;
-}
-
-/* JS 添加 .written 类后播放描边动画 */
-.iw-char.written, .iw-char2.written, .iw-char3.written {
-  animation: writeStroke 0.5s ease forwards;
-}
-
-/* 全部写完后 JS 添加 .filled 类 */
-#introText.filled .iw-char,
-#introText2.filled .iw-char2,
-#introText3.filled .iw-char3 {
-  animation: writeStroke 0.5s ease forwards, fillInChar 0.5s ease 0.3s forwards;
-}
-
-@keyframes writeStroke {
-  0%   { stroke-dashoffset: 120; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@keyframes fillInChar {
-  0%   { fill:transparent; stroke:#B53434; }
-  100% { fill:#8B1A1A; stroke:transparent; }
-}
-
-/* 装饰星星 — 4s 弹出 */
-.intro-sparkle-deco text {
-  animation: sparkleAppear 0.4s ease 4s forwards;
-}
-.intro-sparkle-deco text:nth-child(2) { animation-delay: 4.15s; }
-.intro-sparkle-deco text:nth-child(3) { animation-delay: 4.25s; }
-.intro-sparkle-deco text:nth-child(4) { animation-delay: 4.35s; }
-
-@keyframes sparkleAppear {
-  0%   { opacity:0; transform:scale(0); }
-  50%  { opacity:1; transform:scale(1.6); }
-  100% { opacity:0.7; transform:scale(1); }
 }
 
 /* ============ 全屏背景层 ============ */
@@ -1485,52 +1439,9 @@ main { position:relative; z-index:10; max-width:860px; margin:0 auto; padding:0 
   <div class="intro-ring" id="introRing">
     <div class="intro-icon">🍎</div>
   </div>
-  <!-- SVG 手写文字 -->
-  <svg class="intro-svg" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="glowFilter">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feFlood flood-color="#D94A4A" flood-opacity="0.6"/>
-        <feComposite in2="blur" operator="in"/>
-        <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <!-- 第一行: Happy Birthday — 每个字母独立 tspan 用于逐字动画 -->
-    <text class="intro-write" id="introText" x="400" y="100" text-anchor="middle"
-          font-family="'Great Vibes', 'Playfair Display', serif" font-size="72"
-          fill="none" stroke="#B53434" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round"
-          letter-spacing="3">
-      <tspan class="iw-char" style="--i:0">H</tspan><tspan class="iw-char" style="--i:1">a</tspan><tspan class="iw-char" style="--i:2">p</tspan><tspan class="iw-char" style="--i:3">p</tspan><tspan class="iw-char" style="--i:4">y</tspan>
-      <tspan class="iw-char" style="--i:5"> </tspan>
-      <tspan class="iw-char" style="--i:6">B</tspan><tspan class="iw-char" style="--i:7">i</tspan><tspan class="iw-char" style="--i:8">r</tspan><tspan class="iw-char" style="--i:9">t</tspan><tspan class="iw-char" style="--i:10">h</tspan><tspan class="iw-char" style="--i:11">d</tspan><tspan class="iw-char" style="--i:12">a</tspan><tspan class="iw-char" style="--i:13">y</tspan>
-    </text>
-    <!-- 第二行: ttt -->
-    <text class="intro-write" id="introText2" x="400" y="170" text-anchor="middle"
-          font-family="'Great Vibes', 'Playfair Display', serif" font-size="80"
-          fill="none" stroke="#B53434" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round"
-          letter-spacing="2">
-      <tspan class="iw-char2" style="--j:0">t</tspan><tspan class="iw-char2" style="--j:1">t</tspan><tspan class="iw-char2" style="--j:2">t</tspan>
-    </text>
-    <!-- 第三行: my love — 装饰线 -->
-    <text class="intro-write" id="introText3" x="400" y="230" text-anchor="middle"
-          font-family="'Great Vibes', 'Playfair Display', serif" font-size="48"
-          fill="none" stroke="#B53434" stroke-width="1.5"
-          stroke-linecap="round" stroke-linejoin="round"
-          letter-spacing="4">
-      <tspan class="iw-char3" style="--k:0">m</tspan><tspan class="iw-char3" style="--k:1">y</tspan>
-      <tspan class="iw-char3" style="--k:2"> </tspan>
-      <tspan class="iw-char3" style="--k:3">l</tspan><tspan class="iw-char3" style="--k:4">o</tspan><tspan class="iw-char3" style="--k:5">v</tspan><tspan class="iw-char3" style="--k:6">e</tspan>
-    </text>
-    <!-- 装饰小星星，写完后出现 -->
-    <g class="intro-sparkle-deco" id="introSparkleDeco">
-      <text x="180" y="60" font-size="18" fill="#D94A4A" opacity="0">✦</text>
-      <text x="590" y="55" font-size="14" fill="#B53434" opacity="0">✦</text>
-      <text x="620" y="250" font-size="16" fill="#D94A4A" opacity="0">✧</text>
-      <text x="160" y="245" font-size="12" fill="#B53434" opacity="0">✦</text>
-    </g>
-  </svg>
+  <!-- 花体英文标题 -->
+  <h1 class="intro-title">Happy Birthday ttt</h1>
+  <p class="intro-love">my love</p>
   <!-- 副标题 -->
   <p class="intro-sub">✦ MY LOVE ✦</p>
 </div>
@@ -1926,48 +1837,9 @@ function initIntro(){
   const o=document.getElementById('introOverlay');
   const picker=document.getElementById('islandPicker');
 
-  // JS 驱动逐字描边动画（代替不可靠的 CSS 变量延迟）
-  const line1=document.querySelectorAll('.iw-char');
-  const line2=document.querySelectorAll('.iw-char2');
-  const line3=document.querySelectorAll('.iw-char3');
-  const sparkles=document.querySelectorAll('.intro-sparkle-deco text');
-  const ring=document.getElementById('introRing');
-  const sub=document.querySelector('.intro-sub');
-
-  // 苹果光环：0.2s
-  if(ring) setTimeout(()=>ring.style.opacity='1',200);
-
-  // 第一行 Happy Birthday：从 0.3s 开始，每个字母间隔 0.1s
-  line1.forEach((ch,i)=>{
-    setTimeout(()=>ch.classList.add('written'),300+i*100);
-  });
-
-  // 第二行 ttt：从 1.8s 开始
-  line2.forEach((ch,i)=>{
-    setTimeout(()=>ch.classList.add('written'),1800+i*70);
-  });
-
-  // 第三行 my love：从 2.5s 开始
-  line3.forEach((ch,i)=>{
-    setTimeout(()=>ch.classList.add('written'),2500+i*80);
-  });
-
-  // 3.5s 填充颜色
-  setTimeout(()=>{
-    document.getElementById('introText').classList.add('filled');
-    document.getElementById('introText2').classList.add('filled');
-    document.getElementById('introText3').classList.add('filled');
-  },3500);
-
-  // 4s 副标题 + 装饰星星
-  if(sub) setTimeout(()=>sub.style.opacity='1',4000);
-  sparkles.forEach((s,i)=>{
-    setTimeout(()=>s.style.opacity='1',4000+i*150);
-  });
-
-  // 5.5s 淡出，6s 显示主页
-  setTimeout(()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; },5500);
-  setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },6000);
+  // 3.5s 后淡出，3.9s 显示主页
+  setTimeout(()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; },3500);
+  setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },4000);
 
   // 点击跳过
   o.addEventListener('click',()=>{
