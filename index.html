@@ -128,28 +128,24 @@ body {
   100% { filter:none; }
 }
 
-/* 每个字母初始：描边隐藏 */
+/* 每个字母初始：描边隐藏，JS 驱动逐个显示 */
 .iw-char, .iw-char2, .iw-char3 {
   stroke-dasharray: 120;
   stroke-dashoffset: 120;
+  fill: transparent;
+  stroke: #B53434;
 }
 
-/* 第一行: Happy Birthday — 每个字符 0.1s 间隔 */
-.iw-char {
-  animation: writeStroke 0.55s ease forwards, fillInChar 0.5s ease 3.5s forwards;
-  animation-delay: calc(var(--i) * 0.1s + 0.3s), 3.5s;
+/* JS 添加 .written 类后播放描边动画 */
+.iw-char.written, .iw-char2.written, .iw-char3.written {
+  animation: writeStroke 0.5s ease forwards;
 }
 
-/* 第二行: ttt — 从 1.8s 开始 */
-.iw-char2 {
-  animation: writeStroke 0.4s ease forwards, fillInChar 0.5s ease 3.5s forwards;
-  animation-delay: calc(var(--j) * 0.07s + 1.8s), 3.5s;
-}
-
-/* 第三行: my love — 从 2.5s 开始 */
-.iw-char3 {
-  animation: writeStroke 0.45s ease forwards, fillInChar 0.5s ease 3.5s forwards;
-  animation-delay: calc(var(--k) * 0.08s + 2.5s), 3.5s;
+/* 全部写完后 JS 添加 .filled 类 */
+#introText.filled .iw-char,
+#introText2.filled .iw-char2,
+#introText3.filled .iw-char3 {
+  animation: writeStroke 0.5s ease forwards, fillInChar 0.5s ease 0.3s forwards;
 }
 
 @keyframes writeStroke {
@@ -1930,11 +1926,54 @@ function initIntro(){
   const o=document.getElementById('introOverlay');
   const picker=document.getElementById('islandPicker');
 
-  // 5.8s 后开场动画淡出，显示海岛选择（动画 5.5s + 0.3s 缓冲）
-  setTimeout(()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; },5800);
-  setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },6200);
-  // 点击也可跳过
-  o.addEventListener('click',()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },400); });
+  // JS 驱动逐字描边动画（代替不可靠的 CSS 变量延迟）
+  const line1=document.querySelectorAll('.iw-char');
+  const line2=document.querySelectorAll('.iw-char2');
+  const line3=document.querySelectorAll('.iw-char3');
+  const sparkles=document.querySelectorAll('.intro-sparkle-deco text');
+  const ring=document.getElementById('introRing');
+  const sub=document.querySelector('.intro-sub');
+
+  // 苹果光环：0.2s
+  if(ring) setTimeout(()=>ring.style.opacity='1',200);
+
+  // 第一行 Happy Birthday：从 0.3s 开始，每个字母间隔 0.1s
+  line1.forEach((ch,i)=>{
+    setTimeout(()=>ch.classList.add('written'),300+i*100);
+  });
+
+  // 第二行 ttt：从 1.8s 开始
+  line2.forEach((ch,i)=>{
+    setTimeout(()=>ch.classList.add('written'),1800+i*70);
+  });
+
+  // 第三行 my love：从 2.5s 开始
+  line3.forEach((ch,i)=>{
+    setTimeout(()=>ch.classList.add('written'),2500+i*80);
+  });
+
+  // 3.5s 填充颜色
+  setTimeout(()=>{
+    document.getElementById('introText').classList.add('filled');
+    document.getElementById('introText2').classList.add('filled');
+    document.getElementById('introText3').classList.add('filled');
+  },3500);
+
+  // 4s 副标题 + 装饰星星
+  if(sub) setTimeout(()=>sub.style.opacity='1',4000);
+  sparkles.forEach((s,i)=>{
+    setTimeout(()=>s.style.opacity='1',4000+i*150);
+  });
+
+  // 5.5s 淡出，6s 显示主页
+  setTimeout(()=>{ o.style.opacity='0'; o.style.transition='opacity 0.4s'; },5500);
+  setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },6000);
+
+  // 点击跳过
+  o.addEventListener('click',()=>{
+    o.style.opacity='0'; o.style.transition='opacity 0.4s';
+    setTimeout(()=>{ o.remove(); picker.classList.remove('hidden'); },400);
+  });
 }
 
 function initIslandPicker(){
