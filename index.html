@@ -2210,8 +2210,7 @@ function initEnvelope(){
     const b=document.getElementById('letterSaveV3'); b.textContent='已保存 ✓';
     setTimeout(()=>b.textContent='保存',1500);
   });
-  // 不再自动加载 localStorage，HTML 内容即为默认内容
-}
+  const s=localStorage.getItem('birthday-v4-letter'); if(s) body.innerHTML=s;
 
 // ============ 恋爱日记 ============
 // ============ 许愿瓶 ============
