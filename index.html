@@ -2206,11 +2206,11 @@ function initEnvelope(){
     document.querySelector('.envelope-click-hint').textContent='点 击 开 启';
   });
   document.getElementById('letterSaveV3').addEventListener('click',()=>{
-    localStorage.setItem('birthday-v3-letter',body.innerHTML);
+    localStorage.setItem('birthday-v4-letter',body.innerHTML);
     const b=document.getElementById('letterSaveV3'); b.textContent='已保存 ✓';
     setTimeout(()=>b.textContent='保存',1500);
   });
-  const s=localStorage.getItem('birthday-v3-letter'); if(s) body.innerHTML=s;
+  const s=localStorage.getItem('birthday-v4-letter'); if(s) body.innerHTML=s;
 }
 
 // ============ 恋爱日记 ============
