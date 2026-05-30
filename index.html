@@ -1990,21 +1990,34 @@ function initIntro(){
     animId=requestAnimationFrame(draw);
   }
 
-  // 初始化 + 等待字体就绪
+  // 初始化
   resize();
   window.addEventListener('resize',()=>{ resize(); buildChars(); });
-  function startAnim(){
-    buildChars();
-    animId=requestAnimationFrame(draw);
-  }
+
+  // 直接启动（不等字体，避免卡死）
+  buildChars();
+  setTimeout(()=>{
+    if(!done) animId=requestAnimationFrame(draw);
+  },300);
+
+  // 字体就绪后重新计算字符位置（更精准）
   if(document.fonts&&document.fonts.ready){
-    document.fonts.ready.then(startAnim);
-  } else {
-    setTimeout(startAnim,500); // 降级：等 0.5s 让字体加载
+    document.fonts.ready.then(()=>{ buildChars(); });
   }
+
+  // 保底：6s 后无论如何显示主页
+  setTimeout(()=>{
+    if(!done){
+      done=true; cancelAnimationFrame(animId);
+      picker.classList.remove('hidden');
+      overlay.style.opacity='0'; overlay.style.transition='opacity 0.4s';
+      setTimeout(()=>overlay.remove(),450);
+    }
+  },6000);
 
   // 点击跳过
   overlay.addEventListener('click',()=>{
+    if(done) return;
     done=true; cancelAnimationFrame(animId);
     picker.classList.remove('hidden');
     overlay.style.opacity='0'; overlay.style.transition='opacity 0.3s';
