@@ -101,7 +101,7 @@ body {
   100% { transform:translateX(-50%) scale(1); opacity:0.75; }
 }
 /* Canvas */
-#introCanvas { position:relative; z-index:1; }
+#introCanvas { position:relative; z-index:1; width:90vw; max-width:700px; height:280px; display:block; }
 /* 副标题 */
 /* 副标题 */
 .intro-sub {
@@ -2010,11 +2010,19 @@ function initIntro(){
   resize();
   window.addEventListener('resize',()=>{ resize(); buildChars(); });
 
-  // 直接启动（不等字体，避免卡死）
-  buildChars();
+  // 验证初始化是否成功
+  if(!totalChars||!canvas.width||!canvas.height){
+    console.warn('Canvas init failed, skipping intro animation');
+    picker.classList.remove('hidden');
+    overlay.style.opacity='0';
+    setTimeout(()=>overlay.remove(),400);
+    return;
+  }
+
+  // 直接启动动画
   setTimeout(()=>{
     if(!done) animId=requestAnimationFrame(draw);
-  },300);
+  },200);
 
   // 字体就绪后重新计算字符位置（更精准）
   if(document.fonts&&document.fonts.ready){
