@@ -2,3 +2,10 @@
 prompt.txt
 web-design-engineer.md
 *.mp4
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
